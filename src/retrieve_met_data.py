@@ -114,6 +114,32 @@ class MetMuseumFetcher:
                             if page_response.status_code == 200:
                                 soup = BeautifulSoup(page_response.text, "html.parser")
 
+                                if gallery_span := soup.find(
+                                    "span",
+                                    class_="artwork__location--gallery",
+                                ):
+                                    if location_a := gallery_span.find("a"):
+                                        gallery_link = location_a["href"]
+                                        if gallery_link:
+                                            obj_data["galleryLink"] = gallery_link
+                                            logger.info(
+                                                f"Object {object_id}: Gallery link found: {gallery_link}"
+                                            )
+                                            # return obj_data
+                                        else:
+                                            logger.info(
+                                                f"Object {object_id}: Empty gallery link"
+                                            )
+                                    else:
+                                        logger.info(
+                                            f"Object {object_id}: location <a> tag not found"
+                                        )
+
+                                else:
+                                    logger.info(
+                                        f"Object {object_id}: Gallery span not found"
+                                    )
+
                                 if desc_div := soup.find(
                                     "div",
                                     class_="artwork__intro__desc js-artwork__intro__desc",
@@ -129,6 +155,12 @@ class MetMuseumFetcher:
                                             logger.info(
                                                 f"Object {object_id}: Description found: {description}"
                                             )
+
+                                            obj_data["galleryLink"] = (
+                                                ""
+                                                if "galleryLink" not in obj_data
+                                                else obj_data["galleryLink"]
+                                            )
                                             return obj_data
                                         else:
                                             logger.info(
@@ -142,6 +174,33 @@ class MetMuseumFetcher:
                                     logger.info(
                                         f"Object {object_id}: Description div not found"
                                     )
+
+                                if gallery_span := soup.find(
+                                    "span",
+                                    class_="artwork__location--gallery",
+                                ):
+                                    if location_a := gallery_span.find("a"):
+                                        gallery_link = location_a["href"]
+                                        if gallery_link:
+                                            obj_data["galleryLink"] = gallery_link
+                                            logger.info(
+                                                f"Object {object_id}: Gallery link found: {gallery_link}"
+                                            )
+                                            return obj_data
+                                        else:
+                                            logger.info(
+                                                f"Object {object_id}: Empty gallery link"
+                                            )
+                                    else:
+                                        logger.info(
+                                            f"Object {object_id}: location <a> tag not found"
+                                        )
+
+                                else:
+                                    logger.info(
+                                        f"Object {object_id}: Gallery span not found"
+                                    )
+
                             else:
                                 logger.warning(
                                     f"Object {object_id}: Description page HTTP {page_response.status_code}"
@@ -190,7 +249,7 @@ async def main():
     async with MetMuseumFetcher(max_concurrent_requests=10) as fetcher:
         objects = await fetcher.fetch_all_objects(start_id=1, end_id=2000)
 
-        with open("met_museum_objects_full.json", "w", encoding="utf-8") as f:
+        with open("met_museum_objects_full_test.json", "w", encoding="utf-8") as f:
             json.dump(objects, f, indent=4)
 
         print(f"Fetched {len(objects)} objects")
