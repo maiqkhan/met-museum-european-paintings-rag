@@ -2,3 +2,4 @@ jupyter==1.1.1
 beautifulsoup4==4.13.4
 httpx[http2]==0.28.1
 qdrant-client[fastembed]==1.14.3
+fastapi[standard-no-fastapi-cloud-cli]==0.116.1
