@@ -5,3 +5,4 @@ qdrant-client[fastembed]==1.14.3
 fastapi[standard-no-fastapi-cloud-cli]==0.116.1
 python-dotenv==1.1.1
 openai==1.99.6
+streamlit==1.50.0
