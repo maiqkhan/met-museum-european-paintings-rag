@@ -18,7 +18,7 @@ Currently, searching through large datasets requires manual effort, keyword sear
 **Solution (this project):**  
 - Use **RAG (Retrieval-Augmented Generation)** to combine **structured museum data** with **LLM-powered reasoning**.  
 - Enable users to query paintings using everyday language (e.g., *"Who painted Jerusalem from the Mount of Olives?"* or *"Show me paintings by French artists in the 19th century"*).  
-- Provide responses that are both **informative** and **directly linked** to the original dataset.  
+- Provide responses that are both **informative** and **directly linked** to the original knowledge base.  
 
 
 ---
