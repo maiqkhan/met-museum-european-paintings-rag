@@ -11,6 +11,31 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+def build_dense_embedding_text(painting_obj: Dict) -> str:
+    """Cleaner text for dense embedding — narrative/semantic content only, no URLs/logistics."""
+    title = painting_obj.get('title', '')
+    artist = painting_obj.get('artistDisplayName', '')
+    description = painting_obj.get('itemDescription', '')
+    medium = painting_obj.get('medium', '')
+
+    tags_lst = []
+    try:
+        for tag in painting_obj.get("tags") or []:
+            if 'term' in tag:
+                tags_lst.append(tag['term'])
+    except Exception:
+        pass
+
+    parts = [f"{title} by {artist}."]
+    if medium:
+        parts.append(f"Medium: {medium}.")
+    if description:
+        parts.append(f"{description}")
+    if tags_lst:
+        parts.append(f"Themes: {', '.join(tags_lst)}.")
+
+    return " ".join(parts).strip()
+
 def prepare_painting_description(painting_obj: Dict) -> Dict:
     """Prepare formatted description of painting from museum data object list for ingestion into vector database"""
 
@@ -66,15 +91,18 @@ def prepare_painting_description(painting_obj: Dict) -> Dict:
     else:
         painting_work_duration = f"The painting was started in {painting_data.get('objectBeginDate', 0)} and completed in {painting_data.get('objectEndDate', 0)}"
 
-    public_importance = f"and {'is' if painting_data.get('isHighlight') == False else 'is not'} a popular and important artwork in {painting_data.get('artistDisplayName')}'s collection, {'and is currently in the public domain' if painting_data.get('isHighlight') == False else 'is not currently in the public domain'}"
+    public_importance = f"and {'is not' if painting_data.get('isHighlight') == False else 'is'} a popular and important artwork in {painting_data.get('artistDisplayName')}'s collection, {'and is currently in the public domain' if painting_data.get('isHighlight') == False else 'is not currently in the public domain'}"
 
     text = f"""
-    {intro_statement}. {artwork_description}. {artwork_origin}. {medium_dimensions}. {gallery_location}. {artist_bio}. {painting_work_duration}, {public_importance}. {artist_text}. {tags_text}.
+    {intro_statement}. {artwork_description}. {artwork_origin}. 
+    {medium_dimensions}. {gallery_location}. 
+    {artist_bio}. {painting_work_duration}, {public_importance}. {artist_text}. {tags_text}.
     """.strip()
 
     data_dict = {
         'artwork_id': painting_data.get('objectID'),
         'artwork_text': text,
+        'dense_embedding_text': build_dense_embedding_text(painting_data),
         'primary_image_url': painting_data.get('primaryImage', ''),
         'artist_bio_url': painting_data.get('artistWikidata_URL', ''),
         'artwork_url': painting_data.get('objectURL', '')
@@ -83,7 +111,7 @@ def prepare_painting_description(painting_obj: Dict) -> Dict:
     return data_dict 
 
 logger.info("Ingesting musuems object json file.")
-json_path = Path('src/met_museum_objects_full.json')
+json_path = Path('src_dataset/met_museum_objects_full.json')
 with open(json_path) as f:
     data = json.load(f)
 
@@ -96,13 +124,23 @@ for obj in data:
     try:
         artwork_obj = prepare_painting_description(obj)
         artwork_obj_lst.append(artwork_obj)
-    except:
-        print(artwork_obj)
+    except Exception:
+        logger.warning(f"Failed to parse artwork object: {obj.get('objectID', 'unknown id')}")
+ 
+thin_count = sum(
+    1 for a in artwork_obj_lst
+    if not a.get('dense_embedding_text') or len(a['dense_embedding_text']) < 50
+)
+logger.info(f"{thin_count} / {len(artwork_obj_lst)} artworks have thin dense_embedding_text (<50 chars)")
 
 
 client = QdrantClient("http://localhost:6333")
 client.get_collections()
 
+
+if client.collection_exists("met-museum-euro-artworks"):
+    client.delete_collection("met-museum-euro-artworks")
+    logger.info("Deleted existing collection before re-ingestion.")
 
 client.create_collection(
     collection_name="met-museum-euro-artworks",
@@ -128,24 +166,24 @@ client.upsert(
             id=artwork_obj['artwork_id'],
             vector = {
                 "jina-small": models.Document(
-                    text = artwork_obj['artwork_text'],
+                    text=artwork_obj['dense_embedding_text'],  
                     model="jinaai/jina-embeddings-v2-small-en"
                 ),
                 "bm25": models.Document(
-                    text=artwork_obj['artwork_text'],
+                    text=artwork_obj['artwork_text'],            
                     model="Qdrant/bm25"
-
                 )
             },
             payload={
-                "artwork_text": artwork_obj['artwork_text'],
+                "artwork_text": artwork_obj['artwork_text'], 
+                "artwork_dense_embedding": artwork_obj['dense_embedding_text'],     
                 'artwork_image_url': artwork_obj['primary_image_url'],
                 'artist_url': artwork_obj['artist_bio_url'],
                 'artwork_bio_url': artwork_obj['artwork_url']
-                    }
+            }
         )
      for artwork_obj in artwork_obj_lst
-    ] 
+    ]
 )
 
 logger.info('Ingestion of museum artwork knowledge base into vector database complete!')
