@@ -1,8 +1,8 @@
-# 🎨 RAG Application for The Met European Paintings Collection  
+# RAG Application for The Met European Paintings Collection  
 
-## 📌 Project Overview  
+## Project Overview  
 This project is a **Retrieval-Augmented Generation (RAG) application** built for the **European Paintings Collection** at the **Metropolitan Museum of Art, New York**.  
-The goal of the application is to allow users to **ask natural language questions** about paintings and receive **context-rich answers** sourced from the museum’s knowledge base.  
+The goal of the application is to allow users to **ask natural language questions** about paintings and receive **context-rich answers** sourced from the museum’s knowledge base. The application is best used to prepare for a visit to the museum to help 
 
 ---
 
@@ -91,7 +91,7 @@ Here’s a simplified example:
 
 - Multilingual Support: Allow questions and responses in multiple languages.
 
-## ⚙️ Setup Instructions  - Update
+## ⚙️ Setup Instructions
 1. Clone Repository
 git clone https://github.com/maiqkhan/met-museum-european-paintings-rag.git
 cd met-museum-european-paintings-rag
@@ -112,42 +112,6 @@ streamlit run app.py
 
 Open the app in your browser and start asking questions about the Met’s European Paintings.
 
-## 🖼️ Visuals & Examples  - Update
-App Interface Screenshot
 
-(Insert screenshot of query + response here)
 
-Example Query Demo
-
-(Insert GIF showing a user typing “Who painted Jerusalem from the Mount of Olives?” and the app responding with the painting details + image)
-
-## 🎥 App Preview Video - Update
-
-( Upload a short screen recording of your app in action.)
-
-## 📂 Documentation Structure - Update
-
-README.md → Project overview
-
-setup.md → Detailed installation/setup instructions
-
-usage.md → How to use the app with examples
-
-contributing.md → Guidelines for contributors
-
-### 🔄 Maintenance
-
-The project will be updated as new features are added, datasets are expanded, or the API is updated. Always check the latest commit history for changes.
-
-## Ingestion
-
-## Evaluation
-
-### Retrieval
-
-### Rag Flow
-
-## Monitoring
-
-## Ingestion
 
