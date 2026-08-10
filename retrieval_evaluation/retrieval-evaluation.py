@@ -57,7 +57,7 @@ class Retrieval_Metrics:
 
 
 
-ground_truth_df = pd.read_csv('retrieval_evaluation/ground_truth_v2.csv')
+ground_truth_df = pd.read_csv('retrieval_evaluation/ground_truth.csv')
 ground_truth_dict = ground_truth_df.to_dict(orient='records')
 
 methods = {
@@ -77,3 +77,4 @@ for name, fn in methods.items():
 
 comparison_df = pd.DataFrame(results).T
 print(comparison_df)
+comparison_df.to_csv("retrieval_evaluation/retrieval_evaluation_scores.csv", index = False)
